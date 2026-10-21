@@ -34,6 +34,13 @@
     ].join("-");
     userInput.max = todayStr;
 
+    // Open the date picker when clicking anywhere in the input
+    userInput.addEventListener("click", () => {
+        if (userInput.showPicker) {
+            try { userInput.showPicker(); } catch (e) {}
+        }
+    });
+
     function calculateAge() {
         if (!userInput.value) {
             result.innerHTML = "Please select a valid date.";
@@ -64,35 +71,24 @@
         let m2 = today.getMonth() + 1;
         let y2 = today.getFullYear();
 
-        let d3, m3, y3;
-
-        y3 = y2 - y1;
-
-        if (m2 >= m1) {
-            m3 = m2 - m1;
-        } else {
-            y3--;
-            m3 = 12 + m2 - m1;
+        // Whole months completed since birth
+        let totalMonths = (y2 - y1) * 12 + (m2 - m1);
+        if (d2 < d1) {
+            totalMonths--;
         }
 
-        if (d2 >= d1) {
-            d3 = d2 - d1;
-        } else {
-            m3--;
-            // Get days in the previous month
-            let prevMonth = m2 - 1;
-            let prevYear = y2;
-            if (prevMonth === 0) {
-                prevMonth = 12;
-                prevYear--;
-            }
-            d3 = getDaysInMonth(prevYear, prevMonth) + d2 - d1;
-        }
+        let y3 = Math.floor(totalMonths / 12);
+        let m3 = totalMonths % 12;
 
-        if (m3 < 0) {
-            m3 = 11;
-            y3--;
-        }
+        // Date of the last "month-birthday", clamped to the end of short months
+        let anchorYear = y1 + Math.floor((m1 - 1 + totalMonths) / 12);
+        let anchorMonth = (m1 - 1 + totalMonths) % 12 + 1;
+        let anchorDay = Math.min(d1, getDaysInMonth(anchorYear, anchorMonth));
+
+        // Days since then (UTC avoids daylight-saving shifts)
+        let d3 = Math.round(
+            (Date.UTC(y2, m2 - 1, d2) - Date.UTC(anchorYear, anchorMonth - 1, anchorDay)) / 86400000
+        );
 
         result.innerHTML = `You are <strong>${y3}</strong> years, <strong>${m3}</strong> months, and <strong>${d3}</strong> days old.`;
     }
