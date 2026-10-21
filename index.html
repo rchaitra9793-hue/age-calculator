@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="calculator">
+        <h1>JavaScript<br><span>Age Calculator</span></h1>
+        <div class="input-box">
+            <input type="date" id="date">
+            <button onclick="calculateAge()">Calculate</button>
+        </div>
+        <div id="result" style="margin-top: 20px; font-size: 20px;"></div>
+    </div>
+</div>
+
+<script>
+    let userInput = document.getElementById("date");
+    let result = document.getElementById("result");
+
+    // Prevent selecting future dates (use local date, not UTC)
+    let now = new Date();
+    let todayStr = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+    ].join("-");
+    userInput.max = todayStr;
+
+    function calculateAge() {
+        if (!userInput.value) {
+            result.innerHTML = "Please select a valid date.";
+            return;
+        }
+
+        // Parse as a local date so the day doesn't shift with the time zone
+        let [by, bm, bd] = userInput.value.split("-").map(Number);
+        let birthDate = new Date(by, bm - 1, bd);
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (isNaN(birthDate.getTime())) {
+            result.innerHTML = "Please select a valid date.";
+            return;
+        }
+
+        if (birthDate > today) {
+            result.innerHTML = "Birth date cannot be in the future.";
+            return;
+        }
+
+        let d1 = birthDate.getDate();
+        let m1 = birthDate.getMonth() + 1;
+        let y1 = birthDate.getFullYear();
+
+        let d2 = today.getDate();
+        let m2 = today.getMonth() + 1;
+        let y2 = today.getFullYear();
+
+        let d3, m3, y3;
+
+        y3 = y2 - y1;
+
+        if (m2 >= m1) {
+            m3 = m2 - m1;
+        } else {
+            y3--;
+            m3 = 12 + m2 - m1;
+        }
+
+        if (d2 >= d1) {
+            d3 = d2 - d1;
+        } else {
+            m3--;
+            // Get days in the previous month
+            let prevMonth = m2 - 1;
+            let prevYear = y2;
+            if (prevMonth === 0) {
+                prevMonth = 12;
+                prevYear--;
+            }
+            d3 = getDaysInMonth(prevYear, prevMonth) + d2 - d1;
+        }
+
+        if (m3 < 0) {
+            m3 = 11;
+            y3--;
+        }
+
+        result.innerHTML = `You are <strong>${y3}</strong> years, <strong>${m3}</strong> months, and <strong>${d3}</strong> days old.`;
+    }
+
+    function getDaysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
+    }
+</script>
+</body>
+</html>
